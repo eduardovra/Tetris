@@ -10,15 +10,20 @@ public class BlockBehaviour : MonoBehaviour {
 	void Start () {
 		horizontalCollisions = new Dictionary<int, GameObject> ();
 		verticalCollisions = new Dictionary<int, GameObject> ();
+
+		UpdateCollisions ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
+		if (transform.hasChanged) {
+			transform.hasChanged = false;
 
+			UpdateCollisions ();
+		}
 	}
 
 	void OnTriggerEnter (Collider other) {
-		//Debug.Log (transform.name + " " + transform.position + " collided with " + other.transform.name + " " + other.transform.position);
 
 		if (transform.name == other.transform.name) {
 			GameObject gameObject = other.transform.gameObject;
@@ -37,26 +42,44 @@ public class BlockBehaviour : MonoBehaviour {
 	}
 
 	void OnTriggerExit (Collider other) {
-		//Debug.Log (transform.name + " " + transform.position + " stopped colliding with " + other.transform.name + " " + other.transform.position);
-		//GameObject gameObject = other.transform.gameObject;
 
 		horizontalCollisions.Remove (other.transform.GetInstanceID ());
 		verticalCollisions.Remove (other.transform.GetInstanceID ());
 	}
 
-	public List<GameObject> GetCollisions () {
-		Dictionary<int, GameObject> dict = new Dictionary<int ,GameObject> ();
-
-		foreach (GameObject obj in horizontalCollisions.Values) {
-			dict.Add(obj.GetInstanceID(), obj);
+	void UpdateCollisions () {
+		RaycastHit hit;
+		
+		horizontalCollisions.Clear();
+		verticalCollisions.Clear();
+		
+		horizontalCollisions.Add(transform.GetInstanceID(), transform.gameObject);
+		verticalCollisions.Add(transform.GetInstanceID(), transform.gameObject);
+		
+		Vector3[] horizontal_dirs = { Vector3.left, Vector3.right };
+		
+		foreach (Vector3 direction in horizontal_dirs) {
+			if (Physics.Raycast (transform.position, direction, out hit)) {
+				if (hit.transform.gameObject.tag == "Block" && hit.transform.name == transform.name)
+					horizontalCollisions.Add(hit.transform.GetInstanceID(), hit.transform.gameObject);
+			}
 		}
-
-		foreach (GameObject obj in verticalCollisions.Values) {
-			dict.Add(obj.GetInstanceID(), obj);
+		
+		Vector3[] vertical_dirs = { Vector3.up, Vector3.down };
+		
+		foreach (Vector3 direction in vertical_dirs) {
+			if (Physics.Raycast (transform.position, direction, out hit)) {
+				if (hit.transform.gameObject.tag == "Block" && hit.transform.name == transform.name)
+					verticalCollisions.Add(hit.transform.GetInstanceID(), hit.transform.gameObject);
+			}
 		}
-
-		return new List<GameObject>(dict.Values);
 	}
 
+	public List<GameObject> GetHorizontalCollisions () {
+		return new List<GameObject>(horizontalCollisions.Values);
+	}
 
+	public List<GameObject> GetVerticalCollisions () {
+		return new List<GameObject>(verticalCollisions.Values);
+	}
 }

@@ -25,10 +25,17 @@ public class Manager : MonoBehaviour {
 		foreach (GameObject block in Blocks.Values) {
 			BlockBehaviour behaviour = block.GetComponent(typeof(BlockBehaviour)) as BlockBehaviour;
 
-			List<GameObject> blocksList = behaviour.GetCollisions();
+			List<GameObject> horizontalBlocksList = behaviour.GetHorizontalCollisions();
 
-			if (blocksList.Count > 1) {
-				blocksToDestroy.AddRange(blocksList);
+			if (horizontalBlocksList.Count >= 3) {
+				blocksToDestroy.AddRange(horizontalBlocksList);
+				blocksToDestroy.Add(block);
+			}
+
+			List<GameObject> verticalBlocksList = behaviour.GetVerticalCollisions();
+			
+			if (verticalBlocksList.Count >= 3) {
+				blocksToDestroy.AddRange(verticalBlocksList);
 				blocksToDestroy.Add(block);
 			}
 		}
