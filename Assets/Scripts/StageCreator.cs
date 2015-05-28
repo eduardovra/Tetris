@@ -5,7 +5,8 @@ using System.Collections.Generic;
 public class StageCreator : MonoBehaviour {
 	
 	public GameObject[] Block_Prefabs;
-	public float speed = 0.2f;
+	public float speedUp = 0.2f;
+	public float speedDown = 50.0f;
 	public List<GameObject> BaseBlocks;
 
 	private Dictionary<int, GameObject> Blocks;
@@ -49,18 +50,34 @@ public class StageCreator : MonoBehaviour {
 
 		DestroyBlocks (blocksToDestroy);
 
-		MoveUp ();
+		MoveBlocks ();
 
 		UpdateBaseBlocks ();
 	}
 
-	void MoveUp () {
-		float y = speed * Time.deltaTime;
+	void MoveBlocks () {
+		float y_Up = speedUp * Time.deltaTime;
 
-		cursor.transform.Translate (0, y, 0);
+		cursor.transform.Translate (0, y_Up, 0);
 
 		foreach (GameObject block in Blocks.Values) {
-			block.transform.Translate (0, y, 0);
+			RaycastHit hit;
+
+			if (Physics.Raycast (block.transform.position, Vector3.down, out hit)) {
+				Debug.Log(hit.distance);
+				if (hit.distance >= 0.5) {
+					float y_Down = speedDown * Time.deltaTime;
+					y_Down = hit.transform.position.y + 0.5f;
+					//block.transform.Translate (0, y_Down, 0);
+					block.transform.Translate (Vector3.down * Time.deltaTime * speedDown);
+				}
+				else {
+					block.transform.Translate (0, y_Up, 0);
+				}
+			}
+			else {
+				block.transform.Translate (0, y_Up, 0);
+			}
 		}
 	}
 
