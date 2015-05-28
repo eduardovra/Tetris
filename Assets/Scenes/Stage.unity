@@ -166,7 +166,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 205293119}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: 0, y: 3.15899992, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -326,8 +326,8 @@ MonoBehaviour:
   - {fileID: 184780, guid: 80d6f81527edfc149a3469a821028347, type: 2}
   - {fileID: 185078, guid: eb70f9e0c1e697d4a9b0b1e8b644a63e, type: 2}
   - {fileID: 111256, guid: e53d687d102d3914d9b81444afd439fa, type: 2}
-  speed: .200000003
-  BaseBlocks: []
+  speedUp: .200000003
+  speedDown: 50
 --- !u!1 &1218301993
 GameObject:
   m_ObjectHideFlags: 0

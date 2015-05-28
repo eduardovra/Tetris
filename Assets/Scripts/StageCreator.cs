@@ -7,7 +7,7 @@ public class StageCreator : MonoBehaviour {
 	public GameObject[] Block_Prefabs;
 	public float speedUp = 0.2f;
 	public float speedDown = 50.0f;
-	public List<GameObject> BaseBlocks;
+	public Dictionary<int, GameObject> BaseBlocks;
 
 	private Dictionary<int, GameObject> Blocks;
 	private GameObject cursor;
@@ -17,7 +17,7 @@ public class StageCreator : MonoBehaviour {
 	void Start () {
 
 		Blocks = new Dictionary<int, GameObject> ();
-		BaseBlocks = new List<GameObject> ();
+		BaseBlocks = new Dictionary<int, GameObject> ();
 		rootBlocks = GameObject.Find ("Blocks").gameObject;
 		cursor = GameObject.Find ("Cursor");
 
@@ -27,7 +27,7 @@ public class StageCreator : MonoBehaviour {
 				GameObject block = InstantiateBlock (Block_Prefabs [index], new Vector3 (x, y, 0), rootBlocks);
 
 				if (y == -1) {
-					BaseBlocks.Add(block);
+					BaseBlocks.Add(block.GetInstanceID(), block);
 				}
 
 				Debug.Log("Adding " + block.GetInstanceID());
@@ -69,7 +69,7 @@ public class StageCreator : MonoBehaviour {
 					float y_Down = speedDown * Time.deltaTime;
 					y_Down = hit.transform.position.y + 0.5f;
 					//block.transform.Translate (0, y_Down, 0);
-					block.transform.Translate (Vector3.down * Time.deltaTime * speedDown);
+					block.transform.Translate (Vector3.down * Time.deltaTime * speedUp);
 				}
 				else {
 					block.transform.Translate (0, y_Up, 0);
@@ -82,7 +82,12 @@ public class StageCreator : MonoBehaviour {
 	}
 
 	void UpdateBaseBlocks () {
-		float y = BaseBlocks [0].transform.position.y;
+		float y = 0;
+
+		foreach (GameObject block in BaseBlocks.Values) {
+			y = block.transform.position.y;
+			break;
+		}
 
 		if (y > 0) {
 			BaseBlocks.Clear ();
@@ -90,7 +95,7 @@ public class StageCreator : MonoBehaviour {
 			for (int x = -3; x <= 3; x++) {
 				int index = Random.Range (0, Block_Prefabs.Length);
 				GameObject block = InstantiateBlock (Block_Prefabs [index], new Vector3 (x, y - 1, 0), rootBlocks);
-				BaseBlocks.Add(block);
+				BaseBlocks.Add(block.GetInstanceID(), block);
 				Debug.Log("Adding " + block.GetInstanceID());
 				Blocks.Add(block.GetInstanceID(), block);
 			}
@@ -99,8 +104,12 @@ public class StageCreator : MonoBehaviour {
 
 	List<GameObject> GetBlocksToDestroy () {
 		List<GameObject> blocksToDestroy = new List<GameObject> ();
-		
+
 		foreach (GameObject block in Blocks.Values) {
+
+			if (BaseBlocks.ContainsValue(block))
+				continue;
+
 			BlockBehaviour behaviour = block.GetComponent (typeof(BlockBehaviour)) as BlockBehaviour;
 			
 			List<GameObject> horizontalBlocksList = behaviour.GetHorizontalCollisions ();
