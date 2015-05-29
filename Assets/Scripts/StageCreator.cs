@@ -5,8 +5,8 @@ using System.Collections.Generic;
 public class StageCreator : MonoBehaviour {
 	
 	public GameObject[] Block_Prefabs;
-	public float speedUp = 0.2f;
-	public float speedDown = 50.0f;
+	public float speedUp = 1.0f;
+	public float speedDown = 1.0f;
 	public Dictionary<int, GameObject> BaseBlocks;
 
 	private Dictionary<int, GameObject> Blocks;
@@ -22,7 +22,7 @@ public class StageCreator : MonoBehaviour {
 		cursor = GameObject.Find ("Cursor");
 
 		for (int x = -3; x <= 3; x++) {
-			for (int y = -1; y <= 4; y++) {
+			for (int y = -1; y <= 3; y++) {
 				int index = Random.Range (0, Block_Prefabs.Length);
 				GameObject block = InstantiateBlock (Block_Prefabs [index], new Vector3 (x, y, 0), rootBlocks);
 
@@ -30,7 +30,6 @@ public class StageCreator : MonoBehaviour {
 					BaseBlocks.Add(block.GetInstanceID(), block);
 				}
 
-				Debug.Log("Adding " + block.GetInstanceID());
 				Blocks.Add(block.GetInstanceID(), block);
 			}
 		}
@@ -40,6 +39,8 @@ public class StageCreator : MonoBehaviour {
 		GameObject block = Instantiate (prefab, position, Quaternion.identity) as GameObject;
 		block.transform.parent = parent.transform;
 		block.name = prefab.name;
+
+		Debug.Log (block.GetInstanceID());
 
 		return block;
 	}
@@ -56,28 +57,30 @@ public class StageCreator : MonoBehaviour {
 	}
 
 	void MoveBlocks () {
-		float y_Up = speedUp * Time.deltaTime;
+		Dictionary<int, Vector3> newBlockPositions = new Dictionary<int, Vector3> ();
+		Vector3 Up = Vector3.up * Time.deltaTime * speedUp;
 
-		cursor.transform.Translate (0, y_Up, 0);
+		cursor.transform.position += Up;
 
-		foreach (GameObject block in Blocks.Values) {
+		foreach (KeyValuePair<int, GameObject> entry in Blocks) {
 			RaycastHit hit;
-
-			if (Physics.Raycast (block.transform.position, Vector3.down, out hit)) {
-				Debug.Log(hit.distance);
-				if (hit.distance >= 0.5) {
-					float y_Down = speedDown * Time.deltaTime;
-					y_Down = hit.transform.position.y + 0.5f;
-					//block.transform.Translate (0, y_Down, 0);
-					block.transform.Translate (Vector3.down * Time.deltaTime * speedUp);
-				}
-				else {
-					block.transform.Translate (0, y_Up, 0);
-				}
+			int key = entry.Key;
+			GameObject block = entry.Value;
+			
+			if (Physics.Raycast (block.transform.position, Vector3.down, out hit) && hit.distance >= 0.5) {
+				Vector3 Down = Vector3.down * Time.deltaTime * speedDown;
+				newBlockPositions.Add(key, block.transform.position + Down);
 			}
 			else {
-				block.transform.Translate (0, y_Up, 0);
+				newBlockPositions.Add(key, block.transform.position + Up);
 			}
+		}
+
+		foreach (KeyValuePair<int, Vector3> entry in newBlockPositions) {
+			int key = entry.Key;
+			Vector3 position = entry.Value;
+			GameObject block = Blocks[key];
+			block.transform.position = position;
 		}
 	}
 
@@ -96,7 +99,6 @@ public class StageCreator : MonoBehaviour {
 				int index = Random.Range (0, Block_Prefabs.Length);
 				GameObject block = InstantiateBlock (Block_Prefabs [index], new Vector3 (x, y - 1, 0), rootBlocks);
 				BaseBlocks.Add(block.GetInstanceID(), block);
-				Debug.Log("Adding " + block.GetInstanceID());
 				Blocks.Add(block.GetInstanceID(), block);
 			}
 		}
@@ -111,7 +113,6 @@ public class StageCreator : MonoBehaviour {
 				continue;
 
 			BlockBehaviour behaviour = block.GetComponent (typeof(BlockBehaviour)) as BlockBehaviour;
-			
 			List<GameObject> horizontalBlocksList = behaviour.GetHorizontalCollisions ();
 			
 			if (horizontalBlocksList.Count >= 3) {
@@ -132,7 +133,6 @@ public class StageCreator : MonoBehaviour {
 
 	void DestroyBlocks (List<GameObject> blocksToDestroy) {
 		foreach (GameObject block in blocksToDestroy) {
-			Debug.Log ("Destroying " + block.GetInstanceID ());
 			Blocks.Remove (block.GetInstanceID ());
 			Destroy (block);
 		}

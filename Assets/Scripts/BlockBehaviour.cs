@@ -28,8 +28,6 @@ public class BlockBehaviour : MonoBehaviour {
 		if (transform.name == other.transform.name) {
 			GameObject gameObject = other.transform.gameObject;
 
-			Debug.Log("Adding to collision list " + other.transform.GetInstanceID());
-
 			// Horizontal
 			if (transform.position.y == other.transform.position.y) {
 				horizontalCollisions.Add(other.transform.GetInstanceID (), gameObject);
