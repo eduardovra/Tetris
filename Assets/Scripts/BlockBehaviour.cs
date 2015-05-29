@@ -74,7 +74,7 @@ public class BlockBehaviour : MonoBehaviour {
 		
 		foreach (Vector3 direction in horizontal_dirs) {
 			if (Physics.Raycast (transform.position, direction, out hit)) {
-				if (hit.transform.gameObject.tag == "Block" && hit.transform.name == transform.name)
+				if (hit.distance <= 0.5f && hit.transform.name == transform.name)
 					horizontalCollisions.Add(hit.transform.GetInstanceID(), hit.transform.gameObject);
 			}
 		}
@@ -83,7 +83,7 @@ public class BlockBehaviour : MonoBehaviour {
 		
 		foreach (Vector3 direction in vertical_dirs) {
 			if (Physics.Raycast (transform.position, direction, out hit)) {
-				if (hit.transform.gameObject.tag == "Block" && hit.transform.name == transform.name)
+				if (hit.distance <= 0.5f && hit.transform.name == transform.name)
 					verticalCollisions.Add(hit.transform.GetInstanceID(), hit.transform.gameObject);
 			}
 		}
