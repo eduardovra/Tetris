@@ -40,20 +40,17 @@ public class StageCreator : MonoBehaviour {
 		block.transform.parent = parent.transform;
 		block.name = prefab.name;
 
-		Debug.Log (block.GetInstanceID());
-
 		return block;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+
+		UpdateBaseBlocks ();
+
 		List<GameObject> blocksToDestroy = GetBlocksToDestroy ();
 
 		DestroyBlocks (blocksToDestroy);
-
-		//MoveBlocks ();
-
-		UpdateBaseBlocks ();
 	}
 
 	void MoveBlocks () {
@@ -88,8 +85,10 @@ public class StageCreator : MonoBehaviour {
 		float y = 0;
 
 		foreach (GameObject block in BaseBlocks.Values) {
-			y = block.transform.position.y;
-			break;
+			if (block) {
+				y = block.transform.position.y;
+				break;
+			}
 		}
 
 		if (y > 0) {
@@ -107,9 +106,12 @@ public class StageCreator : MonoBehaviour {
 	List<GameObject> GetBlocksToDestroy () {
 		List<GameObject> blocksToDestroy = new List<GameObject> ();
 
-		foreach (GameObject block in Blocks.Values) {
+		foreach (KeyValuePair<int, GameObject> entry in Blocks) {
 
-			if (BaseBlocks.ContainsValue(block))
+			int key = entry.Key;
+			GameObject block = entry.Value;
+
+			if (BaseBlocks.ContainsKey(key))
 				continue;
 
 			BlockBehaviour behaviour = block.GetComponent (typeof(BlockBehaviour)) as BlockBehaviour;
