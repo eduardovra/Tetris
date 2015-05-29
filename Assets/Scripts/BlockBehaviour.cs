@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class BlockBehaviour : MonoBehaviour {
 
+	public float speedUp = 0.5f;
+	public float speedDown = 1.0f;
 	public Dictionary<int, GameObject> horizontalCollisions, verticalCollisions;
 
 	// Use this for initialization
@@ -16,10 +18,24 @@ public class BlockBehaviour : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+		MoveBlock ();
+
 		if (transform.hasChanged) {
 			transform.hasChanged = false;
 
 			UpdateCollisions ();
+		}
+	}
+
+	void MoveBlock () {
+		RaycastHit hit;
+
+		if (Physics.Raycast (transform.position, Vector3.down, out hit) && hit.distance >= 0.5) {
+			transform.position += Vector3.down * Time.deltaTime * speedDown;
+		}
+		else {
+			transform.position += Vector3.up * Time.deltaTime * speedUp;
 		}
 	}
 

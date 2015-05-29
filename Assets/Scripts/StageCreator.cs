@@ -51,7 +51,7 @@ public class StageCreator : MonoBehaviour {
 
 		DestroyBlocks (blocksToDestroy);
 
-		MoveBlocks ();
+		//MoveBlocks ();
 
 		UpdateBaseBlocks ();
 	}
