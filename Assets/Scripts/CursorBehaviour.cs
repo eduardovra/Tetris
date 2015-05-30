@@ -5,9 +5,17 @@ public class CursorBehaviour : MonoBehaviour {
 
 	public float speedUp = 0.5f;
 
+	private bool canMove = true;
+
 	// Use this for initialization
 	void Start () {
-	
+		StageCreator.StartMoving += StartMoving;
+		StageCreator.StopMoving += StopMoving;
+	}
+
+	void onDestroy () {
+		StageCreator.StartMoving -= StartMoving;
+		StageCreator.StopMoving -= StopMoving;
 	}
 	
 	// Update is called once per frame
@@ -34,8 +42,18 @@ public class CursorBehaviour : MonoBehaviour {
 				MoveCursor (Vector3.down);
 			}
 		} else {
-			transform.position += Vector3.up * Time.deltaTime * speedUp;
+			if (canMove) {
+				transform.position += Vector3.up * Time.deltaTime * speedUp;
+			}
 		}
+	}
+
+	void StartMoving () {
+		canMove = true;
+	}
+	
+	void StopMoving () {
+		canMove = false;
 	}
 
 	GameObject GetBlock(GameObject cursor) {

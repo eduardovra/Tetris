@@ -9,6 +9,11 @@ public class StageCreator : MonoBehaviour {
 	public float speedDown = 1.0f;
 	public Dictionary<int, GameObject> BaseBlocks;
 
+	public delegate void StartMovingAction();
+	public delegate void StopMovingAction();
+	public static event StartMovingAction StartMoving;
+	public static event StopMovingAction StopMoving;
+
 	private Dictionary<int, GameObject> Blocks;
 	private GameObject cursor;
 	GameObject rootBlocks;
@@ -33,6 +38,10 @@ public class StageCreator : MonoBehaviour {
 				Blocks.Add(block.GetInstanceID(), block);
 			}
 		}
+
+		if (StartMoving != null) {
+			StartMoving ();
+		}
 	}
 
 	GameObject InstantiateBlock (GameObject prefab, Vector3 position, GameObject parent) {
@@ -50,7 +59,9 @@ public class StageCreator : MonoBehaviour {
 
 		List<GameObject> blocksToDestroy = GetBlocksToDestroy ();
 
-		DestroyBlocks (blocksToDestroy);
+		if (blocksToDestroy.Count > 0) {
+			StartCoroutine(DestroyBlocks (blocksToDestroy));
+		}
 	}
 
 	void MoveBlocks () {
@@ -111,10 +122,12 @@ public class StageCreator : MonoBehaviour {
 			int key = entry.Key;
 			GameObject block = entry.Value;
 
+			// Dont destroy blocks that are on base
 			if (BaseBlocks.ContainsKey(key))
 				continue;
 
 			BlockBehaviour behaviour = block.GetComponent (typeof(BlockBehaviour)) as BlockBehaviour;
+
 			List<GameObject> horizontalBlocksList = behaviour.GetHorizontalCollisions ();
 			
 			if (horizontalBlocksList.Count >= 3) {
@@ -133,10 +146,24 @@ public class StageCreator : MonoBehaviour {
 		return blocksToDestroy;
 	}
 
-	void DestroyBlocks (List<GameObject> blocksToDestroy) {
+	IEnumerator DestroyBlocks (List<GameObject> blocksToDestroy) {
+
+		if (StopMoving != null) {
+			StopMoving ();
+		}
+
 		foreach (GameObject block in blocksToDestroy) {
-			Blocks.Remove (block.GetInstanceID ());
-			Destroy (block);
+			if (block != null) {
+				block.SendMessage("Die");
+				yield return new WaitForSeconds(1);
+
+				Blocks.Remove (block.GetInstanceID ());
+				Destroy (block);
+			}
+		}
+
+		if (StartMoving != null) {
+			StartMoving ();
 		}
 	}
 }

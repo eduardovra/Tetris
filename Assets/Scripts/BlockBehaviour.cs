@@ -8,18 +8,35 @@ public class BlockBehaviour : MonoBehaviour {
 	public float speedDown = 1.0f;
 	public Dictionary<int, GameObject> horizontalCollisions, verticalCollisions;
 
+	private bool canMove = true;
+	private bool dying = false;
+
 	// Use this for initialization
 	void Start () {
 		horizontalCollisions = new Dictionary<int, GameObject> ();
 		verticalCollisions = new Dictionary<int, GameObject> ();
 
 		UpdateCollisions ();
+
+		StageCreator.StartMoving += StartMoving;
+		StageCreator.StopMoving += StopMoving;
+	}
+
+	void onDestroy () {
+		StageCreator.StartMoving -= StartMoving;
+		StageCreator.StopMoving -= StopMoving;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-		MoveBlock ();
+		if (canMove) {
+			MoveBlock ();
+		}
+
+		if (dying) {
+			transform.localScale -= Vector3.one * Time.deltaTime;
+		}
 
 		if (transform.hasChanged) {
 			transform.hasChanged = false;
@@ -28,10 +45,18 @@ public class BlockBehaviour : MonoBehaviour {
 		}
 	}
 
+	void StartMoving () {
+		canMove = true;
+	}
+
+	void StopMoving () {
+		canMove = false;
+	}
+
 	void MoveBlock () {
 		RaycastHit hit;
 
-		if (Physics.Raycast (transform.position, Vector3.down, out hit) && hit.distance >= 0.5) {
+		if (Physics.Raycast (transform.position, Vector3.down, out hit) && hit.distance > 0.5f) {
 			transform.position += Vector3.down * Time.deltaTime * speedDown;
 		}
 		else {
@@ -95,5 +120,9 @@ public class BlockBehaviour : MonoBehaviour {
 
 	public List<GameObject> GetVerticalCollisions () {
 		return new List<GameObject>(verticalCollisions.Values);
+	}
+
+	void Die () {
+		dying = true;
 	}
 }
