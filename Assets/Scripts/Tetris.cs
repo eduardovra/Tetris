@@ -18,6 +18,7 @@ public class Tetris : MonoBehaviour {
 	public GameObject Cursor_Prefab;
 	public float speedUp = 0.5f;
 	public float speedDown = 25.0f;
+	public float min_x = -3, max_x = 3, min_y = -1, max_y = 3;
 	public GameState state = GameState.UpdateCursor;
 	public Queue<Cursor.Key> keys_pressed;
 
@@ -40,11 +41,11 @@ public class Tetris : MonoBehaviour {
 		GameObject rootObject = new GameObject ("Blocks");
 		Blocks = new Dictionary<int, Block> ();
 
-		for (int x = -3; x <= 3; x++) {
-			for (int y = -1; y <= 3; y++) {
+		for (float x = min_x; x <= max_x; x++) {
+			for (float y = min_y; y <= max_y; y++) {
 				Block block = new Block (Block_Prefab, new Vector3 (x, y, 0), rootObject);
 				
-				if (y == -1) {
+				if (y == min_y) {
 					block.SetBase (true);
 				}
 
@@ -239,7 +240,7 @@ public class Tetris : MonoBehaviour {
 		if (y > 0) {
 			GameObject rootObject = GameObject.Find ("Blocks");
 
-			for (int x = -3; x <= 3; x++) {
+			for (float x = min_x; x <= max_x; x++) {
 				Block block = new Block (Block_Prefab, new Vector3 (x, y - 1, 0), rootObject);
 
 				block.SetBase (true);
@@ -461,23 +462,29 @@ public class Cursor {
 		switch (key) {
 		case Key.Swap:
 
-				Block leftBlock = GetBlock (leftCursor);
-				Block rightBlock = GetBlock (rightCursor);
+			Block leftBlock = GetBlock (leftCursor);
+			Block rightBlock = GetBlock (rightCursor);
 
-				if ((leftBlock != null && leftBlock.is_base) || 
-			         (rightBlock != null && rightBlock.is_base))
-					break;
+			// Base blocks should not be swapped
+			if ((leftBlock != null && leftBlock.is_base) || 
+		        (rightBlock != null && rightBlock.is_base))
+				break;
 
-				swaped = true;
+			// Blocks should not fall from the sides
+			if ((leftCursor.transform.position.x < tetris.min_x) ||
+			    (rightCursor.transform.position.x > tetris.max_x))
+				break;
 
-				if (leftBlock != null && rightBlock != null)
-					SwapBlocks (leftBlock.gameObject, rightBlock.gameObject);
-				else if (leftBlock != null)
-					MoveBlock (leftBlock.gameObject, Vector3.right);
-				else if (rightBlock != null)
-					MoveBlock (rightBlock.gameObject, Vector3.left);
-				else
-					swaped = false;
+			swaped = true;
+
+			if (leftBlock != null && rightBlock != null)
+				SwapBlocks (leftBlock.gameObject, rightBlock.gameObject);
+			else if (leftBlock != null)
+				MoveBlock (leftBlock.gameObject, Vector3.right);
+			else if (rightBlock != null)
+				MoveBlock (rightBlock.gameObject, Vector3.left);
+			else
+				swaped = false;
 			break;
 		case Key.Right:
 			MoveCursor (Vector3.right);
@@ -521,7 +528,16 @@ public class Cursor {
 	}
 	
 	void MoveCursor (Vector3 direction){
-		gameObject.transform.position += direction;
+		if (WithinBoundaries (direction)) {
+			gameObject.transform.position += direction;
+		}
+	}
+
+	bool WithinBoundaries (Vector3 direction)
+	{
+		Vector3 new_position = gameObject.transform.position + direction;
+
+		return ((new_position.x >= tetris.min_x) && (new_position.x < tetris.max_x));
 	}
 
 	public void MoveUp (float speed) {
