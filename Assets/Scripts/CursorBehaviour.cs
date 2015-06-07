@@ -3,21 +3,11 @@ using System.Collections;
 
 public class CursorBehaviour : MonoBehaviour {
 
-	public float speedUp = 0.5f;
-
-	private bool canMove = true;
-
 	// Use this for initialization
 	void Start () {
-		StageCreator.StartMoving += StartMoving;
-		StageCreator.StopMoving += StopMoving;
+
 	}
 
-	void onDestroy () {
-		StageCreator.StartMoving -= StartMoving;
-		StageCreator.StopMoving -= StopMoving;
-	}
-	
 	// Update is called once per frame
 	void Update () {
 
@@ -41,22 +31,10 @@ public class CursorBehaviour : MonoBehaviour {
 			} else if (Input.GetAxis ("Vertical") < 0) {
 				MoveCursor (Vector3.down);
 			}
-		} else {
-			if (canMove) {
-				transform.position += Vector3.up * Time.deltaTime * speedUp;
-			}
 		}
 	}
-
-	void StartMoving () {
-		canMove = true;
-	}
 	
-	void StopMoving () {
-		canMove = false;
-	}
-
-	GameObject GetBlock(GameObject cursor) {
+	GameObject GetBlock (GameObject cursor) {
 		GameObject go = null;
 		RaycastHit hit;
 
@@ -67,17 +45,17 @@ public class CursorBehaviour : MonoBehaviour {
 		return go;
 	}
 
-	void SwapBlocks(GameObject leftBlock, GameObject rightBlock) {
+	void SwapBlocks (GameObject leftBlock, GameObject rightBlock) {
 		Vector3 tempPosition = leftBlock.transform.position;
 		leftBlock.transform.position = rightBlock.transform.position;
 		rightBlock.transform.position = tempPosition;
 	}
 
-	void MoveBlock(GameObject block, Vector3 direction) {
+	void MoveBlock (GameObject block, Vector3 direction) {
 		block.transform.position += direction;
 	}
 
-	void MoveCursor(Vector3 direction){
+	void MoveCursor (Vector3 direction){
 		transform.position += direction;
 	}
 }

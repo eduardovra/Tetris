@@ -47,10 +47,12 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\BlockBehaviour.cs" />
+     <Compile Include="Assets\Scripts\ComboBehaviour.cs" />
+     <Compile Include="Assets\Scripts\ControllerBehaviour.cs" />
      <Compile Include="Assets\Scripts\CursorBehaviour.cs" />
-     <Compile Include="Assets\Scripts\Manager.cs" />
-     <Compile Include="Assets\Scripts\StageCreator.cs" />
-     <Compile Include="Assets\Scripts\TestBehaviourScript.cs" />
+     <Compile Include="Assets\Scripts\TestCollider.cs" />
+     <Compile Include="Assets\Scripts\Tetris.cs" />
+     <Compile Include="Assets\Scripts\UpwardsMovementBehaviour.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

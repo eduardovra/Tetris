@@ -2,127 +2,173 @@
 using System.Collections;
 using System.Collections.Generic;
 
+[System.Serializable]
 public class BlockBehaviour : MonoBehaviour {
 
-	public float speedUp = 0.5f;
-	public float speedDown = 1.0f;
+	public int instanceID;
+	public bool isSettled_P;
+	public List<GameObject> hor, ver;
 	public Dictionary<int, GameObject> horizontalCollisions, verticalCollisions;
-
-	private bool canMove = true;
+	
 	private bool dying = false;
+	private GameObject comboManager;
+	private ComboBehaviour comboBehaviour;
 
 	// Use this for initialization
 	void Start () {
 		horizontalCollisions = new Dictionary<int, GameObject> ();
 		verticalCollisions = new Dictionary<int, GameObject> ();
 
-		UpdateCollisions ();
+		horizontalCollisions.Add (gameObject.GetInstanceID (), gameObject);
+		verticalCollisions.Add (gameObject.GetInstanceID (), gameObject);
 
-		StageCreator.StartMoving += StartMoving;
-		StageCreator.StopMoving += StopMoving;
+		comboManager = GameObject.Find ("Main Camera");
+		comboBehaviour = comboManager.GetComponent<ComboBehaviour> ();
+		comboBehaviour.AddBlockToList (gameObject);
+		//comboManager.SendMessage ("AddBlockToList", gameObject);
+
+		//Collider collider = GetComponent<Collider> ();
+		//collider.isTrigger = true;
+
+		instanceID = GetInstanceID ();
 	}
 
-	void onDestroy () {
-		StageCreator.StartMoving -= StartMoving;
-		StageCreator.StopMoving -= StopMoving;
+	void OnDestroy () {
+		//comboManager.SendMessage ("RemoveBlockFromList", gameObject);
+		comboBehaviour.RemoveBlockFromList (gameObject);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-		if (canMove) {
-			MoveBlock ();
-		}
-
 		if (dying) {
-			transform.localScale -= Vector3.one * Time.deltaTime;
+			AnimateDying ();
 		}
 
-		if (transform.hasChanged) {
-			transform.hasChanged = false;
+		UpdateCollisions ();
 
-			UpdateCollisions ();
-		}
+		// debbuging
+		isSettled_P = isSettled ();
+		hor = new List<GameObject> (horizontalCollisions.Values);
+		ver = new List<GameObject> (verticalCollisions.Values);
 	}
 
-	void StartMoving () {
-		canMove = true;
-	}
-
-	void StopMoving () {
-		canMove = false;
-	}
-
-	void MoveBlock () {
+	//
+	// Collisions handling
+	//
+	void UpdateCollisions () {
 		RaycastHit hit;
+		Vector3[] vertical = { Vector3.up, Vector3.down };
+		Vector3[] horizontal = { Vector3.left, Vector3.right };
 
-		if (Physics.Raycast (transform.position, Vector3.down, out hit) && hit.distance > 0.5f) {
-			transform.position += Vector3.down * Time.deltaTime * speedDown;
+		horizontalCollisions.Clear ();
+		verticalCollisions.Clear ();
+
+		horizontalCollisions.Add (gameObject.GetInstanceID (), gameObject);
+		verticalCollisions.Add (gameObject.GetInstanceID (), gameObject);
+
+		foreach (Vector3 dir in vertical) {
+			if (Physics.Raycast (transform.position, dir, out hit, 0.5f)) {
+				verticalCollisions.Add (hit.transform.gameObject.GetInstanceID (), hit.transform.gameObject);
+			}
 		}
-		else {
-			transform.position += Vector3.up * Time.deltaTime * speedUp;
+
+		foreach (Vector3 dir in horizontal) {
+			if (Physics.Raycast (transform.position, dir, out hit, 0.5f)) {
+				horizontalCollisions.Add (hit.transform.gameObject.GetInstanceID (), hit.transform.gameObject);
+			}
 		}
 	}
+
+	//
+	// Trigger management
+	//
 
 	void OnTriggerEnter (Collider other) {
+		GameObject gameObject = other.gameObject;
 
-		if (transform.name == other.transform.name) {
-			GameObject gameObject = other.transform.gameObject;
+		//Debug.Log ("on trigger enter " + gameObject);
 
-			// Horizontal
-			if (transform.position.y == other.transform.position.y) {
-				horizontalCollisions.Add(other.transform.GetInstanceID (), gameObject);
-			}
-			// Vertical
-			else if (transform.position.x == other.transform.position.x) {
-				verticalCollisions.Add(other.transform.GetInstanceID (), gameObject);
-			}
+		// Horizontal
+		if (transform.position.y == other.transform.position.y) {
+			horizontalCollisions.Add(gameObject.GetInstanceID (), gameObject);
+		}
+		// Vertical
+		else if (transform.position.x == other.transform.position.x) {
+			verticalCollisions.Add(gameObject.GetInstanceID (), gameObject);
 		}
 	}
 
 	void OnTriggerExit (Collider other) {
+		GameObject gameObject = other.gameObject;
 
-		horizontalCollisions.Remove (other.transform.GetInstanceID ());
-		verticalCollisions.Remove (other.transform.GetInstanceID ());
+		//Debug.Log ("on trigger exit " + gameObject);
+
+		horizontalCollisions.Remove (gameObject.GetInstanceID ());
+		verticalCollisions.Remove (gameObject.GetInstanceID ());
 	}
 
-	void UpdateCollisions () {
-		RaycastHit hit;
+	//
+	// Return collisions excluding blocks that are not settled
+	//
+	
+	public bool isSettled () {
+//		RaycastHit hit;
+		bool settled = false;
 		
-		horizontalCollisions.Clear();
-		verticalCollisions.Clear();
-		
-		horizontalCollisions.Add(transform.GetInstanceID(), transform.gameObject);
-		verticalCollisions.Add(transform.GetInstanceID(), transform.gameObject);
-		
-		Vector3[] horizontal_dirs = { Vector3.left, Vector3.right };
-		
-		foreach (Vector3 direction in horizontal_dirs) {
-			if (Physics.Raycast (transform.position, direction, out hit)) {
-				if (hit.distance <= 0.5f && hit.transform.name == transform.name)
-					horizontalCollisions.Add(hit.transform.GetInstanceID(), hit.transform.gameObject);
+		// if there is a block under, we are settled
+		if (Physics.Raycast(transform.position, Vector3.down, 0.5f))
+			settled = true;
+/*
+		foreach (GameObject block in verticalCollisions.Values) {
+			if (block.transform.position.y < transform.position.y) {
+				settled = true;
 			}
 		}
-		
-		Vector3[] vertical_dirs = { Vector3.up, Vector3.down };
-		
-		foreach (Vector3 direction in vertical_dirs) {
-			if (Physics.Raycast (transform.position, direction, out hit)) {
-				if (hit.distance <= 0.5f && hit.transform.name == transform.name)
-					verticalCollisions.Add(hit.transform.GetInstanceID(), hit.transform.gameObject);
+*/
+		return settled;
+	}
+
+	private List<GameObject> GetCollisions (List<GameObject> inputCollisions) {
+		List<GameObject> collisions = new List<GameObject>();
+
+		if (inputCollisions.Count >= 3) {
+			foreach (GameObject block in inputCollisions) {
+
+				if (block.gameObject.name == gameObject.name) {
+					BlockBehaviour blockBehaviour = block.GetComponent<BlockBehaviour> ();
+
+					if (blockBehaviour.isSettled ()) {
+						collisions.Add (block);
+					}
+				}
 			}
 		}
+
+		return collisions;
 	}
 
 	public List<GameObject> GetHorizontalCollisions () {
-		return new List<GameObject>(horizontalCollisions.Values);
+		return GetCollisions (new List<GameObject> (horizontalCollisions.Values));
 	}
 
 	public List<GameObject> GetVerticalCollisions () {
-		return new List<GameObject>(verticalCollisions.Values);
+		return GetCollisions (new List<GameObject> (verticalCollisions.Values));
 	}
+
+	//
+	// Dying animation
+	//
 
 	void Die () {
 		dying = true;
+	}
+
+	void AnimateDying () {
+		transform.localScale -= Vector3.one * Time.deltaTime;
+
+		if (transform.localScale.x <= 0.0f) {
+			Destroy (gameObject);
+		}
 	}
 }
