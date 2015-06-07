@@ -53,6 +53,10 @@ public class Tetris : MonoBehaviour {
 		}
 	}
 
+	public Block GetBlock (GameObject go) {
+		return Blocks [ go.GetInstanceID () ];
+	}
+
 	//
 	// State machine
 	//
@@ -344,7 +348,7 @@ public class Block {
 			foreach (Vector3 dir in directions) {
 				if (Physics.Raycast (gameObject.transform.position, dir, out hit, 0.5f)) {
 					if (hit.transform.gameObject.name == gameObject.name) {
-						Block block = GameObject_To_Block (hit.transform.gameObject);
+						Block block = tetris.GetBlock (hit.transform.gameObject);
 						if (block.is_base == false) {
 							collisions.Add (block);
 						}
@@ -364,10 +368,6 @@ public class Block {
 	public List<Block> GetVerticalCollisions () {
 		Vector3[] vertical = { Vector3.up, Vector3.down };
 		return GetCollisionsList (vertical);
-	}
-
-	Block GameObject_To_Block (GameObject go) {
-		return tetris.Blocks [ go.GetInstanceID () ];
 	}
 
 	//
@@ -422,6 +422,8 @@ public class Cursor {
 
 	private GameObject leftCursor, rightCursor;
 
+	private Tetris tetris;
+
 	public Cursor (GameObject prefab)
 	{
 		gameObject = GameObject.Instantiate (prefab) as GameObject;
@@ -429,6 +431,8 @@ public class Cursor {
 
 		leftCursor = gameObject.transform.FindChild ("Left").gameObject;
 		rightCursor = gameObject.transform.FindChild ("Right").gameObject;
+
+		tetris = GameObject.Find ("Main Camera").GetComponent<Tetris> ();
 	}
 	
 	public Key Capture_Input () {
@@ -457,17 +461,21 @@ public class Cursor {
 		switch (key) {
 		case Key.Swap:
 
-				GameObject leftBlock = GetBlock (leftCursor);
-				GameObject rightBlock = GetBlock (rightCursor);
+				Block leftBlock = GetBlock (leftCursor);
+				Block rightBlock = GetBlock (rightCursor);
+
+				if ((leftBlock != null && leftBlock.is_base) || 
+			         (rightBlock != null && rightBlock.is_base))
+					break;
 
 				swaped = true;
 
-				if (leftBlock && rightBlock)
-					SwapBlocks (leftBlock, rightBlock);
-				else if (leftBlock)
-					MoveBlock (leftBlock, Vector3.right);
-				else if (rightBlock)
-					MoveBlock (rightBlock, Vector3.left);
+				if (leftBlock != null && rightBlock != null)
+					SwapBlocks (leftBlock.gameObject, rightBlock.gameObject);
+				else if (leftBlock != null)
+					MoveBlock (leftBlock.gameObject, Vector3.right);
+				else if (rightBlock != null)
+					MoveBlock (rightBlock.gameObject, Vector3.left);
 				else
 					swaped = false;
 			break;
@@ -490,19 +498,20 @@ public class Cursor {
 		return swaped;
 	}
 
-	GameObject GetBlock (GameObject cursor) {
-		GameObject go = null;
+	Block GetBlock (GameObject cursor) {
+		Block block = null;
 		RaycastHit hit;
 		
 		if (Physics.Raycast (cursor.transform.position, Vector3.forward, out hit)) {
-			go = hit.transform.gameObject;
+			block = tetris.GetBlock (hit.transform.gameObject);
 		}
 		
-		return go;
+		return block;
 	}
 	
 	void SwapBlocks (GameObject leftBlock, GameObject rightBlock) {
 		Vector3 tempPosition = leftBlock.transform.position;
+
 		leftBlock.transform.position = rightBlock.transform.position;
 		rightBlock.transform.position = tempPosition;
 	}
