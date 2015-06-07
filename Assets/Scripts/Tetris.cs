@@ -45,7 +45,7 @@ public class Tetris : MonoBehaviour {
 				Block block = new Block (Block_Prefab, new Vector3 (x, y, 0), rootObject);
 				
 				if (y == -1) {
-					block.is_base = true;
+					block.SetBase (true);
 				}
 
 				Blocks.Add(block.GetID (), block);
@@ -226,7 +226,7 @@ public class Tetris : MonoBehaviour {
 				y = block.gameObject.transform.position.y;
 				// Clean flag if they are above bottom line
 				if (y > 0) {
-					block.is_base = false;
+					block.SetBase (false);
 				}
 			}
 		}
@@ -238,7 +238,7 @@ public class Tetris : MonoBehaviour {
 			for (int x = -3; x <= 3; x++) {
 				Block block = new Block (Block_Prefab, new Vector3 (x, y - 1, 0), rootObject);
 
-				block.is_base = true;
+				block.SetBase (true);
 				
 				Blocks.Add(block.GetID (), block);
 			}
@@ -282,8 +282,7 @@ public class Block {
 		gameObject.transform.parent = parent.transform;
 		gameObject.name = block_types[index].name;
 		
-		Renderer renderer = gameObject.GetComponent<Renderer> ();
-		renderer.material.color = block_types[index].color;
+		SetColor (block_types [index].color);
 
 		tetris = GameObject.Find ("Main Camera").GetComponent<Tetris> ();
 	}
@@ -300,6 +299,26 @@ public class Block {
 	public void SetState (BlockState new_state) {
 		Debug.Log ("Block state changed from " + state + " to " + new_state);
 		state = new_state;
+	}
+
+	public void SetBase (bool isbase) {
+		is_base = isbase;
+
+		if (is_base) {
+			SetColor ( GetColor () / 2 );
+		} else {
+			SetColor ( GetColor () * 2 );
+		}
+	}
+
+	void SetColor (Color color) {
+		Renderer renderer = gameObject.GetComponent<Renderer> ();
+		renderer.material.color = color;
+	}
+
+	Color GetColor () {
+		Renderer renderer = gameObject.GetComponent<Renderer> ();
+		return renderer.material.color;
 	}
 
 	//
@@ -411,8 +430,7 @@ public class Cursor {
 		leftCursor = gameObject.transform.FindChild ("Left").gameObject;
 		rightCursor = gameObject.transform.FindChild ("Right").gameObject;
 	}
-
-	// C
+	
 	public Key Capture_Input () {
 		Key key = Key.Nothing;
 
