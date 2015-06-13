@@ -18,7 +18,8 @@ public class Tetris : MonoBehaviour {
 	public GameObject Cursor_Prefab;
 	public float speedUp = 0.5f;
 	public float speedDown = 25.0f;
-	public float min_x = -3, max_x = 3, min_y = -1, max_y = 3;
+	public float min_x = -3, max_x = 3, min_y = -1, max_y = 9;
+	public int inital_block_rows = 4;
 	public GameState state = GameState.UpdateCursor;
 	public Queue<Cursor.Key> keys_pressed;
 
@@ -29,6 +30,7 @@ public class Tetris : MonoBehaviour {
 	void Start () {
 		keys_pressed = new Queue<Cursor.Key> ();
 		cursor = new Cursor (Cursor_Prefab);
+		Create_Scene ();
 		Create_Blocks ();
 	}
 	
@@ -42,7 +44,7 @@ public class Tetris : MonoBehaviour {
 		Blocks = new Dictionary<int, Block> ();
 
 		for (float x = min_x; x <= max_x; x++) {
-			for (float y = min_y; y <= max_y; y++) {
+			for (float y = min_y, rows = 0; y <= max_y && rows < inital_block_rows; y++, rows++) {
 				Block block = new Block (Block_Prefab, new Vector3 (x, y, 0), rootObject);
 				
 				if (y == min_y) {
@@ -56,6 +58,33 @@ public class Tetris : MonoBehaviour {
 
 	public Block GetBlock (GameObject go) {
 		return Blocks [ go.GetInstanceID () ];
+	}
+
+	//
+	// Scene
+	//
+
+	void Create_Scene () {
+		// frame for blocks
+		Vector3 vertScale = new Vector3 (1, 1 + max_y - min_y, 1.3f);
+		Vector3 horiScale = new Vector3 (3 + max_x - min_x, 1, 1.3f);
+		GameObject cube;
+		// left
+		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		cube.transform.position = new Vector3(min_x - 1, (min_y + max_y) / 2, 0);
+		cube.transform.localScale = vertScale;
+		// right
+		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		cube.transform.position = new Vector3(max_x + 1, (min_y + max_y) / 2, 0);
+		cube.transform.localScale = vertScale;
+		// up
+		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		cube.transform.position = new Vector3((min_x + max_x) / 2, max_y + 1, 0);
+		cube.transform.localScale = horiScale;
+		// down
+		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+		cube.transform.position = new Vector3((min_x + max_x) / 2, min_y, 0);
+		cube.transform.localScale = horiScale;
 	}
 
 	//
