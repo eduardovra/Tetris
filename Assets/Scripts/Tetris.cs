@@ -152,12 +152,14 @@ public class Tetris : MonoBehaviour {
 			break;
 
 		case GameState.GoingUp:
+			float speed = speedUp * Time.deltaTime;
+
 			// Move all blocks up
 			foreach (Block block in Blocks.Values) {
-				block.MoveUp (speedUp);
+				block.MoveUp (speed);
 			}
 			// Move cursor up
-			cursor.MoveUp (speedUp);
+			cursor.MoveUp (speed);
 
 			SetState(GameState.UpdateBaseBlocks);
 
@@ -215,10 +217,11 @@ public class Tetris : MonoBehaviour {
 
 		case GameState.BlocksFalling:
 			bool all_blocks_settled = true;
+			float fallSpeed = speedDown * Time.deltaTime;
 
 			foreach (Block block in Blocks.Values) {
 				if (block.state == Block.BlockState.Falling) {
-					if (block.MoveDown (speedDown)) {
+					if (block.MoveDown (fallSpeed)) {
 						block.SetState(Block.BlockState.Stopped);
 					}
 					else {
@@ -398,7 +401,7 @@ public class Block {
 			collisions.Add (this);
 
 			foreach (Vector3 dir in directions) {
-				if (Physics.Raycast (gameObject.transform.position, dir, out hit, 0.5f)) {
+				if (Physics.Raycast (gameObject.transform.position, dir, out hit, 0.51f)) {
 					if (hit.transform.gameObject.name == gameObject.name) {
 						Block block = tetris.GetBlock (hit.transform.gameObject);
 						if (block.is_base == false) {
@@ -427,13 +430,13 @@ public class Block {
 	//
 
 	public void MoveUp (float speed) {
-		gameObject.transform.position += Vector3.up * Time.deltaTime * speed;
+		gameObject.transform.position += Vector3.up * speed;
 	}
 
 	// Returns true when object underneath is hitten
 	public bool MoveDown (float speed) {
 
-		Vector3 new_position = gameObject.transform.position + (Vector3.down * Time.deltaTime * speed);
+		Vector3 new_position = gameObject.transform.position + (Vector3.down * speed);
 		RaycastHit hit;
 
 		if (Physics.Raycast (gameObject.transform.position, Vector3.down, out hit)) {
@@ -592,6 +595,6 @@ public class Cursor {
 	}
 
 	public void MoveUp (float speed) {
-		gameObject.transform.position += Vector3.up * Time.deltaTime * speed;
+		gameObject.transform.position += Vector3.up * speed;
 	}
 }
