@@ -32,6 +32,8 @@ public class Tetris : MonoBehaviour {
 	private string level = "EASY";
 	private Vector3 lGuiPos, rGuiPos;
 
+	private bool cursor_updated = false;
+
 	// Use this for initialization
 	void Start () {
 		keys_pressed = new Queue<Cursor.Key> ();
@@ -120,12 +122,16 @@ public class Tetris : MonoBehaviour {
 			keys_pressed.Enqueue (key);
 		}
 
+		Cursor.Key input_key = (keys_pressed.Count > 0) ? keys_pressed.Dequeue () : Cursor.Key.Nothing;
+		if ( cursor.Process_Input (input_key) ) {
+			cursor_updated = true;
+		}
+
 		switch (state) {
 		case GameState.UpdateCursor:
 
-			Cursor.Key input_key = (keys_pressed.Count > 0) ? keys_pressed.Dequeue () : Cursor.Key.Nothing;
-
-			if (cursor.Process_Input ( input_key )) {
+			if (cursor_updated) {
+				cursor_updated = false;
 				SetState(GameState.LookingForBlocksToFall);
 			}
 			else {
