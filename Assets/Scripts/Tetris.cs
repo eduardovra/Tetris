@@ -21,7 +21,6 @@ public class Tetris : MonoBehaviour {
 	public float min_x = -3, max_x = 3, min_y = -1, max_y = 9;
 	public int inital_block_rows = 4;
 	public GameState state = GameState.UpdateCursor;
-	public Queue<Cursor.Key> keys_pressed;
 
 	public Dictionary<int, Block> Blocks;
 	public Cursor cursor;
@@ -36,7 +35,6 @@ public class Tetris : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		keys_pressed = new Queue<Cursor.Key> ();
 		cursor = new Cursor (Cursor_Prefab);
 		Create_Scene ();
 		Create_Blocks ();
@@ -44,7 +42,7 @@ public class Tetris : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		State_Machine ( cursor.Capture_Input () );
+		State_Machine ();
 	}
 
 	void OnGUI () {
@@ -116,14 +114,9 @@ public class Tetris : MonoBehaviour {
 	// State machine
 	//
 
-	void State_Machine (Cursor.Key key) {
+	void State_Machine () {
 
-		if (key != Cursor.Key.Nothing) {
-			keys_pressed.Enqueue (key);
-		}
-
-		Cursor.Key input_key = (keys_pressed.Count > 0) ? keys_pressed.Dequeue () : Cursor.Key.Nothing;
-		if ( cursor.Process_Input (input_key) ) {
+		if ( cursor.Process_Input (cursor.Capture_Input ()) ) {
 			cursor_updated = true;
 		}
 
