@@ -26,6 +26,12 @@ public class Tetris : MonoBehaviour {
 	public Dictionary<int, Block> Blocks;
 	public Cursor cursor;
 
+	private string time = "0'00";
+	private string score = "0";
+	private string speed = "1";
+	private string level = "EASY";
+	private Vector3 lGuiPos, rGuiPos;
+
 	// Use this for initialization
 	void Start () {
 		keys_pressed = new Queue<Cursor.Key> ();
@@ -37,6 +43,16 @@ public class Tetris : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		State_Machine ( cursor.Capture_Input () );
+	}
+
+	void OnGUI () {
+
+		// This can be used to position the GUI elements next to the gameObjects
+		//GUI.Box (new Rect (lGuiPos.x, lGuiPos.y, 100, 40), "Time\n" + time);
+		//GUI.Box (new Rect (rGuiPos.x, rGuiPos.y, 100, 140), "Score\n" + score + "\n\nSpeed\n" + speed + "\n\nLevel\n" + level);
+
+		GUI.Box (new Rect (Screen.width / 100, Screen.height / 10, 100, 40), "Time\n" + time);
+		GUI.Box (new Rect (92 * (Screen.width / 100), Screen.height / 10, 100, 140), "Score\n" + score + "\n\nSpeed\n" + speed + "\n\nLevel\n" + level);
 	}
 	
 	void Create_Blocks () {
@@ -65,18 +81,25 @@ public class Tetris : MonoBehaviour {
 	//
 
 	void Create_Scene () {
+
+		//
+		// Frame
+		//
+
 		// frame for blocks
-		Vector3 vertScale = new Vector3 (1, 1 + max_y - min_y, 1.3f);
+		Vector3 vertScale = new Vector3 (1, max_y - min_y, 1.3f);
 		Vector3 horiScale = new Vector3 (3 + max_x - min_x, 1, 1.3f);
 		GameObject cube;
 		// left
 		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-		cube.transform.position = new Vector3(min_x - 1, (min_y + max_y) / 2, 0);
+		cube.transform.position = new Vector3(min_x - 1, 0.5f + (min_y + max_y) / 2, 0);
 		cube.transform.localScale = vertScale;
+		lGuiPos = Camera.main.WorldToScreenPoint(cube.transform.position);
 		// right
 		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-		cube.transform.position = new Vector3(max_x + 1, (min_y + max_y) / 2, 0);
+		cube.transform.position = new Vector3(max_x + 1, 0.5f + (min_y + max_y) / 2, 0);
 		cube.transform.localScale = vertScale;
+		rGuiPos = Camera.main.WorldToScreenPoint(cube.transform.position);
 		// up
 		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 		cube.transform.position = new Vector3((min_x + max_x) / 2, max_y + 1, 0);
