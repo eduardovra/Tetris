@@ -32,6 +32,7 @@ public class Tetris : MonoBehaviour {
 	private Vector3 lGuiPos, rGuiPos;
 
 	private bool cursor_updated = false;
+	private float gameTime = 0.0f; // Seconds since game start
 
 	// Use this for initialization
 	void Start () {
@@ -43,6 +44,7 @@ public class Tetris : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		State_Machine ();
+		UpdateTimer ();
 	}
 
 	void OnGUI () {
@@ -108,6 +110,15 @@ public class Tetris : MonoBehaviour {
 		cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 		cube.transform.position = new Vector3((min_x + max_x) / 2, min_y, 0);
 		cube.transform.localScale = horiScale;
+	}
+
+	void UpdateTimer () {
+		gameTime += 1 * Time.deltaTime;
+
+		int minutes = (int) (gameTime / 60);
+		int seconds = (int) (gameTime % 60);
+
+		time = minutes + "'" + seconds.ToString("D2");
 	}
 
 	//
