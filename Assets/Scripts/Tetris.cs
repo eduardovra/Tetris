@@ -26,13 +26,13 @@ public class Tetris : MonoBehaviour {
 	public Cursor cursor;
 
 	private string time = "0'00";
-	private string score = "0";
 	private string speed = "1";
 	private string level = "EASY";
 	private Vector3 lGuiPos, rGuiPos;
 
 	private bool cursor_updated = false;
 	private float gameTime = 0.0f; // Seconds since game start
+	private int gameScore = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -49,12 +49,12 @@ public class Tetris : MonoBehaviour {
 
 	void OnGUI () {
 
+		GUI.Box (new Rect (Screen.width / 100, Screen.height / 10, 100, 40), "Time\n" + time);
+		GUI.Box (new Rect (92 * (Screen.width / 100), Screen.height / 10, 100, 140), "Score\n" + gameScore + "\n\nSpeed\n" + speed + "\n\nLevel\n" + level);
+
 		// This can be used to position the GUI elements next to the gameObjects
 		//GUI.Box (new Rect (lGuiPos.x, lGuiPos.y, 100, 40), "Time\n" + time);
 		//GUI.Box (new Rect (rGuiPos.x, rGuiPos.y, 100, 140), "Score\n" + score + "\n\nSpeed\n" + speed + "\n\nLevel\n" + level);
-
-		GUI.Box (new Rect (Screen.width / 100, Screen.height / 10, 100, 40), "Time\n" + time);
-		GUI.Box (new Rect (92 * (Screen.width / 100), Screen.height / 10, 100, 140), "Score\n" + score + "\n\nSpeed\n" + speed + "\n\nLevel\n" + level);
 	}
 	
 	void Create_Blocks () {
@@ -149,6 +149,12 @@ public class Tetris : MonoBehaviour {
 			List<Block> blocksToDestroy = GetBlocksToDestroy ();
 			
 			if (blocksToDestroy.Count >= 3) {
+
+				gameScore += 30;
+
+				if (blocksToDestroy.Count > 3) {
+					gameScore += (blocksToDestroy.Count - 3) * 20;
+				}
 				
 				foreach (Block block in blocksToDestroy) {
 					block.SetState (Block.BlockState.Dying);
@@ -263,24 +269,30 @@ public class Tetris : MonoBehaviour {
 	//
 
 	List<Block> GetBlocksToDestroy () {
-		List<Block> blocksToDestroy = new List<Block> ();
+		Dictionary<int,Block> blocksToDestroy = new Dictionary<int,Block> ();
 		
 		foreach (Block block in Blocks.Values) {
 			
 			List<Block> horizontalBlocksList = block.GetHorizontalCollisions ();
 			
 			if (horizontalBlocksList.Count >= 3) {
-				blocksToDestroy.AddRange (horizontalBlocksList);
+				foreach (Block b in horizontalBlocksList)  {
+					if (blocksToDestroy.ContainsKey(b.GetID()) == false)
+						blocksToDestroy.Add(b.GetID(), b);
+				}
 			}
 			
 			List<Block> verticalBlocksList = block.GetVerticalCollisions ();
 			
 			if (verticalBlocksList.Count >= 3) {
-				blocksToDestroy.AddRange (verticalBlocksList);
+				foreach (Block b in verticalBlocksList) {
+					if (blocksToDestroy.ContainsKey(b.GetID()) == false)
+						blocksToDestroy.Add(b.GetID(), b);
+				}	
 			}
 		}
 		
-		return blocksToDestroy;
+		return new List<Block> (blocksToDestroy.Values);
 	}
 
 	//
@@ -367,7 +379,7 @@ public class Block {
 	}
 
 	public void SetState (BlockState new_state) {
-		Debug.Log ("Block state changed from " + state + " to " + new_state);
+		//Debug.Log ("Block state changed from " + state + " to " + new_state);
 		state = new_state;
 	}
 
@@ -405,25 +417,26 @@ public class Block {
 
 	List<Block> GetCollisionsList (Vector3[] directions)
 	{
-		List<Block> collisions = new List<Block> ();
-		RaycastHit hit;
+		Dictionary<int,Block> collisions = new Dictionary<int,Block> ();
 
 		if (is_base == false) {
-			collisions.Add (this);
+			collisions.Add (this.GetID(), this);
 
 			foreach (Vector3 dir in directions) {
+				RaycastHit hit;
+
 				if (Physics.Raycast (gameObject.transform.position, dir, out hit, 0.51f)) {
 					if (hit.transform.gameObject.name == gameObject.name) {
 						Block block = tetris.GetBlock (hit.transform.gameObject);
 						if (block.is_base == false) {
-							collisions.Add (block);
+							collisions.Add (block.GetID(), block);
 						}
 					}
 				}
 			}
 		}
 
-		return collisions;
+		return new List<Block> (collisions.Values);
 	}
 
 	public List<Block> GetHorizontalCollisions () {
