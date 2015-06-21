@@ -203,6 +203,7 @@ public class Tetris : MonoBehaviour {
 
 			foreach (Block block in new List<Block>(Blocks.Values)) {
 				if (block.state == Block.BlockState.Dying) {
+					block.Glow();
 					if (block.AnimateDying ()) {
 						Blocks.Remove(block.GetID ());
 						block.Destroy ();
@@ -348,15 +349,16 @@ public class Block {
 
 	public struct Block_Type {
 		public Color color;
+		public string texture;
 		public string name;
 	}
 
 	Block_Type[] block_types = new Block_Type []
 	{
-		new Block_Type { color = Color.blue, name = "Blue" },
-		new Block_Type { color = Color.red, name = "Red" },
-		new Block_Type { color = Color.green, name = "Green" },
-		new Block_Type { color = Color.yellow, name = "Yellow" },
+		new Block_Type { color = Color.blue, texture = "BlockCross", name = "Blue" },
+		new Block_Type { color = Color.red, texture = "BlockCircle", name = "Red" },
+		new Block_Type { color = Color.green, texture = "BlockTriangle", name = "Green" },
+		new Block_Type { color = Color.yellow, texture = "BlockSquare", name = "Yellow" },
 	};
 
 	public BlockState state = BlockState.GoingUp;
@@ -374,6 +376,11 @@ public class Block {
 		gameObject.name = block_types[index].name;
 		
 		SetColor (block_types [index].color);
+
+		Texture2D texture = Resources.Load (block_types [index].texture) as Texture2D;
+		Renderer renderer = gameObject.GetComponent<Renderer> ();
+		renderer.material.mainTexture = texture;
+		renderer.material.SetTextureScale ("_MainTex", new Vector2 (1, -1)); // Flip texture
 
 		tetris = GameObject.Find ("Main Camera").GetComponent<Tetris> ();
 	}
@@ -410,6 +417,12 @@ public class Block {
 	Color GetColor () {
 		Renderer renderer = gameObject.GetComponent<Renderer> ();
 		return renderer.material.color;
+	}
+
+	public void Glow () {
+		Renderer renderer = gameObject.GetComponent<Renderer> ();
+		Material mat = renderer.material;
+		mat.SetColor ("_Emission", GetColor());
 	}
 
 	//
