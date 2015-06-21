@@ -180,6 +180,13 @@ public class Tetris : MonoBehaviour {
 			// Move cursor up
 			cursor.MoveUp (speed);
 
+			// Adjusts cursor so it doesnt pass by the upper limit
+			if (cursor.gameObject.transform.position.y > max_y) {
+				Vector3 cursor_pos = cursor.gameObject.transform.position;
+				cursor_pos.y--;
+				cursor.gameObject.transform.position = cursor_pos;
+			}
+
 			SetState(GameState.UpdateBaseBlocks);
 
 			break;
@@ -550,11 +557,6 @@ public class Cursor {
 		        (rightBlock != null && rightBlock.is_base))
 				break;
 
-			// Blocks should not fall from the sides
-			if ((leftCursor.transform.position.x < tetris.min_x) ||
-			    (rightCursor.transform.position.x > tetris.max_x))
-				break;
-
 			swaped = true;
 
 			if (leftBlock != null && rightBlock != null)
@@ -617,7 +619,8 @@ public class Cursor {
 	{
 		Vector3 new_position = gameObject.transform.position + direction;
 
-		return ((new_position.x >= tetris.min_x) && (new_position.x < tetris.max_x));
+		return ((new_position.x >= tetris.min_x) && (new_position.x < tetris.max_x) &&
+		        (new_position.y > tetris.min_y + 1) && (new_position.y < tetris.max_y));
 	}
 
 	public void MoveUp (float speed) {
