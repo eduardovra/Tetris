@@ -18,6 +18,7 @@ public class Tetris : MonoBehaviour {
 	public GameObject Cursor_Prefab;
 	public float speedUp = 0.5f;
 	public float speedDown = 25.0f;
+	public float speedUpAccelerated = 20.0f;
 	public float min_x = -3, max_x = 3, min_y = -1, max_y = 9;
 	public int inital_block_rows = 4;
 	public GameState state = GameState.UpdateCursor;
@@ -169,7 +170,8 @@ public class Tetris : MonoBehaviour {
 			break;
 
 		case GameState.GoingUp:
-			float speed = speedUp * Time.deltaTime;
+			float speed = (Input.GetButton ("Accelerate")) ?
+				speedUpAccelerated * Time.deltaTime : speedUp * Time.deltaTime;
 
 			// Move all blocks up
 			foreach (Block block in Blocks.Values) {
