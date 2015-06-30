@@ -12,6 +12,7 @@ public class Tetris : MonoBehaviour {
 		LookingForBlocksToFall,
 		BlocksFalling,
 		AnimateDestroy,
+		GameOver,
 	}
 
 	public GameObject Block_Prefab;
@@ -56,6 +57,9 @@ public class Tetris : MonoBehaviour {
 		// This can be used to position the GUI elements next to the gameObjects
 		//GUI.Box (new Rect (lGuiPos.x, lGuiPos.y, 100, 40), "Time\n" + time);
 		//GUI.Box (new Rect (rGuiPos.x, rGuiPos.y, 100, 140), "Score\n" + score + "\n\nSpeed\n" + speed + "\n\nLevel\n" + level);
+
+		if(state == GameState.GameOver)
+			GUI.Box (new Rect (Screen.width * 0.5f - 100, Screen.height * 0.5f - 40, 200, 80), "Game Over!");
 	}
 	
 	void Create_Blocks () {
@@ -114,12 +118,14 @@ public class Tetris : MonoBehaviour {
 	}
 
 	void UpdateTimer () {
-		gameTime += 1 * Time.deltaTime;
+		if (state != GameState.GameOver) {
+			gameTime += 1 * Time.deltaTime;
 
-		int minutes = (int) (gameTime / 60);
-		int seconds = (int) (gameTime % 60);
+			int minutes = (int)(gameTime / 60);
+			int seconds = (int)(gameTime % 60);
 
-		time = minutes + "'" + seconds.ToString("D2");
+			time = minutes + "'" + seconds.ToString ("D2");
+		}
 	}
 
 	//
@@ -188,6 +194,13 @@ public class Tetris : MonoBehaviour {
 			}
 
 			SetState(GameState.UpdateBaseBlocks);
+
+			// Checks for game over
+			foreach (Block block in Blocks.Values) {
+				if(block.gameObject.transform.position.y > max_y) {
+					SetState(GameState.GameOver);
+				}
+			}
 
 			break;
 
@@ -262,7 +275,6 @@ public class Tetris : MonoBehaviour {
 			}
 
 			break;
-
 		default:
 			Debug.Log ("Default State " + state);
 			break;
