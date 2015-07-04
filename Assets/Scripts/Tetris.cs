@@ -216,7 +216,6 @@ public class Tetris : MonoBehaviour {
 
 			foreach (Block block in new List<Block>(Blocks.Values)) {
 				if (block.state == Block.BlockState.Dying) {
-					block.Glow();
 					if (block.AnimateDying ()) {
 						Blocks.Remove(block.GetID ());
 						block.Destroy ();
@@ -407,6 +406,15 @@ public class Block {
 	}
 
 	public void SetState (BlockState new_state) {
+
+		if (new_state == BlockState.Dying) {
+			Renderer renderer = gameObject.GetComponent<Renderer> ();
+			Material mat = renderer.material;
+
+			mat.SetColor ("_EmissionColor", GetColor () / 4);
+			mat.EnableKeyword ("_EMISSION");
+		}
+
 		//Debug.Log ("Block state changed from " + state + " to " + new_state);
 		state = new_state;
 	}
@@ -429,12 +437,6 @@ public class Block {
 	Color GetColor () {
 		Renderer renderer = gameObject.GetComponent<Renderer> ();
 		return renderer.material.color;
-	}
-
-	public void Glow () {
-		Renderer renderer = gameObject.GetComponent<Renderer> ();
-		Material mat = renderer.material;
-		mat.SetColor ("_Emission", GetColor());
 	}
 
 	//
@@ -515,6 +517,7 @@ public class Block {
 	//
 
 	public bool AnimateDying () {
+		gameObject.transform.Rotate (200 * Vector3.down * Time.deltaTime);
 		gameObject.transform.localScale -= Vector3.one * Time.deltaTime;
 		return gameObject.transform.localScale.x <= 0.0f;
 	}

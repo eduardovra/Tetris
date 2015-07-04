@@ -188,6 +188,7 @@ MonoBehaviour:
   Cursor_Prefab: {fileID: 167538, guid: e997d886c1114424ba37c580f445fbef, type: 2}
   speedUp: .5
   speedDown: 10
+  speedUpAccelerated: 20
   min_x: -3
   max_x: 3
   min_y: -1
